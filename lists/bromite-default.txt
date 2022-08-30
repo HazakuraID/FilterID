@@ -1,0 +1,5 @@
+# JANGAN EDIT FILE INI
+
+# Daftar ini secara otomatis ditimpa dengan sumber resmi di https://github.com/bromite/filters/blob/master/lists.txt
+
+# Jika anda tidak ingin menghasilkan default list, kamu hanya dapat menghapus file ini
