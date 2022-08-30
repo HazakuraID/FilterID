@@ -1,0 +1,64 @@
+name: Build hazakurafilter
+
+on:
+  push:
+    branches: [ main ]
+  
+  schedule:
+  - cron: "0 15 * * *"
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-18.04
+    steps:
+    - name: Mempersiapkan Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: ^1.15
+
+    - name: Unduh repo
+      uses: actions/checkout@v2
+
+    - name: Unduh dependencies
+      run: |
+        go get -v -t -d ./...
+        if [ -f Gopkg.toml ]; then
+            curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+            dep ensure
+        fi
+      
+    - name: Runnning build/generation script
+      shell: bash
+      run: |
+        bash ./generate.sh 2>&1
+
+    - name: Generate tag name
+      run: echo "TAG_NAME=$(date +%F-%H-%M)" >> $GITHUB_ENV  
+
+    - name: Rilis filter list
+      uses: softprops/action-gh-release@v1
+      with:
+        files: dist/*.dat
+        name: Otomatis list generasi
+        tag_name: ${{ env.TAG_NAME }}
+        body_path: release.md
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Hapus rilis lama
+      uses: dev-drprasad/delete-older-releases@v0.1.0
+      with:
+        keep_latest: 2
+        delete_tags: true 
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Unggah file log
+      uses: actions/upload-artifact@v2
+      with:
+        name: Logs
+        path: logs/*.log
+      if: ${{ always() }}
